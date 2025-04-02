@@ -227,6 +227,41 @@ function crop_cell_fixed_size(I, seg, i)
 end
 ```
 
+### Customizing RICM Segmentation
+
+The RICM channel segmentation identifies the cell-substrate contact area and is crucial for accurate tension measurements. You can customize the RICM segmentation parameters in the `segment_RICM_single_cell` function:
+
+```julia
+# In segmentation.jl, modify the segment_RICM_single_cell function
+function segment_RICM_single_cell(I; seeds = nothing)
+    # Customize Gaussian smoothing (increase for more noise reduction)
+    I_smooth = flt.gaussian(I_inverted, sigma=2)  # Change from default sigma=1
+    
+    # Use a different thresholding algorithm
+    # algo = Otsu()  # Default
+    algo = Yen()     # Alternative thresholding algorithm
+    bw = binarize(I_inverted, algo)
+    
+    # Adjust morphological operations
+    # Apply more opening operations for smoother boundaries
+    Iopen = opening(opening(opening(bw)))
+    
+    # Modify small object removal size threshold
+    bw3 = morph.remove_small_objects(Ifilled, 2/px_area)  # Increase from default 1/px_area
+    
+    # Adjust dilation radius (increase for larger contact area detection)
+    bw6 = morph.binary_dilation(bw5, morph.disk(15))  # Increase from default 10
+    
+    # Rest of the function remains the same...
+end
+```
+
+Fine-tuning these parameters can help improve RICM segmentation for:
+- Cells with different morphologies
+- Images with varying contrast or noise levels
+- Different substrate compositions affecting RICM contrast
+- Experiments with different cell types that have unique adhesion patterns
+
 ## Source Code Overview
 
 ### segmentation.jl
