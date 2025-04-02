@@ -135,7 +135,7 @@ This Cell object is key for advanced usage, as it allows to peer into each singl
 
 ```julia
 # get the 10th cell of a specific condition
-cell_10 = results["condition_name][10]
+cell_10 = results["condition_name"][10]
 
 # plot MTP channel of the 10th cell
 imshow(cell_10.I[:,:,1])
