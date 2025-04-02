@@ -131,6 +131,23 @@ The library creates a `Cell` struct for each segmented cell, containing:
 - Fixed-size representations for display (`I_fixed`, `seg_fixed`)
 - Coordinate information
 
+This Cell object is key for advanced usage, as it allows to peer into each single cell separately. For example, after completing the analysis, one may want to check the images and segmentations of a specific cell.
+
+```julia
+# get the 10th cell of a specific condition
+cell_10 = results["condition_name][10]
+
+# plot MTP channel of the 10th cell
+imshow(cell_10.I[:,:,1])
+# plot MTP channel of the 10th cell
+imshow(cell_10.I[:,:,2])
+# plot MTP channel of the 10th cell
+imshow(cell_10.I[:,:,3])
+
+# plot MTP channel of the 10th cell with fixed crop ratio (useful for representative images selection)
+imshow(cell_10.I_fixed[:,:,1])
+```
+
 ### 4. RICM Segmentation
 For each cell, the RICM channel is segmented to identify the cell-substrate contact area. This provides a mask for measuring tension metrics only in areas where the cell is in contact with the substrate.
 
