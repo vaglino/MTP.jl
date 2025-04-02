@@ -2,6 +2,7 @@
 # add as needed, maintaining the same conventions
 
 using PyCall
+using ImageBinarization
 morph = pyimport("skimage.morphology")
 feat = pyimport("skimage.feature")
 flt = pyimport("skimage.filters")
@@ -46,7 +47,7 @@ function segment_DIC(I)
 # #______________
     #edge detection
     # edges = flt.sobel(I_eq_smooth)
-    edges = feat.canny(I_eq_smooth, sigma=3)
+    edges = feat.canny(I_eq_smooth, sigma=4)
     plotting && imshow(edges)
 
     #img dilation
@@ -59,10 +60,10 @@ function segment_DIC(I)
 
     #erode twice
     eroded = ndimage.binary_erosion(filled,morph.disk(5) )
-    eroded2 = ndimage.binary_erosion(eroded,morph.disk(5) )
+    # eroded2 = ndimage.binary_erosion(eroded,morph.disk(5) )
 
-    plotting && imshow(eroded2)
-    bw = morph.remove_small_objects(eroded2,500)
+    plotting && imshow(eroded)
+    bw = morph.remove_small_objects(eroded,2000)
     plotting && imshow(bw)
 
     bw2 = skseg.clear_border(bw)
@@ -77,9 +78,12 @@ end
 function segment_RICM(I; seeds = nothing)
     fuzz_factor  = 0.9
     I_inverted = 1 .- I
+    
     thres = otsu_threshold(I_inverted)
     # bw = (I_inverted) .> thres
     bw = (I_inverted) .>  thres .* fuzz_factor
+
+
 
     Iopen = opening(bw)
     Iopen = opening(Iopen)
@@ -102,14 +106,16 @@ end
 
 
 
+
 function segment_RICM_single_cell(I; seeds = nothing)
     plotting = false
     #-------------------
     I_rsc = skexposure.rescale_intensity(I)#,in_range=(0.7*minimum(I), 1*maximum(I)))
     # I_eq = adjust_histogram(I, AdaptiveEqualization(nbins = 256, rblocks = 8, cblocks = 8, clip = 0.1))
-    # imshow(I_rsc)
+    plotting && imshow(I_rsc)
     I_inverted = 1 .- I_rsc
-    # imshow(I_inverted)
+
+    plotting && imshow(I_inverted)
     #------------------------------
     # I_eq = skexposure.equalize_hist(I_rsc)
     # I_inverted = 1 .- I_eq
@@ -122,9 +128,13 @@ function segment_RICM_single_cell(I; seeds = nothing)
     # I_inverted = skexposure.equalize_hist(I_inverted)
     # plotting &&  imshow(I_inverted)
 
-    thres = otsu_threshold(I_inverted)
-    bw = (I_inverted) .> thres
-    # plotting && imshow(bw)
+    # thres = otsu_threshold(I_inverted) * 1.0
+    # print(thres)
+    # bw = (I_inverted) .> thres
+    algo = Otsu()
+    bw = binarize(I_inverted, algo)
+
+    plotting && imshow(bw)
 
     Iopen = opening(bw)
     Iopen = opening(Iopen)
@@ -135,11 +145,11 @@ function segment_RICM_single_cell(I; seeds = nothing)
     # Ifilled = dilate(dilate(Ifilled))
     plotting &&  imshow(Ifilled)
 
-    bw3 = morph.remove_small_objects(Ifilled,3/px_area) #3
+    bw3 = morph.remove_small_objects(Ifilled,1/px_area) #3
     plotting &&  imshow(bw3)
 
 
-    bw5 = morph.remove_small_objects(bw3,3/px_area)
+    bw5 = morph.remove_small_objects(bw3,1/px_area)
     bw6 = morph.binary_dilation(bw5,morph.disk(10)) #10
 
     plotting &&  imshow(bw6)
