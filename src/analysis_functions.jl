@@ -6,9 +6,9 @@ Calculates the mean fluorescence intensity (MFI) of tension of a Cell
 # Returns
 - `MFI`: mean fluorescence intensity of tension
 """
-function MFI(cell::Cell;channel=1)
-    F = cell.I[:,:,channel]
-    seg_mask = cell.seg[:,:,2] .!= 0
+function MFI(cell::Cell; channel = 1)
+    F = cell.I[:, :, channel]
+    seg_mask = cell.seg[:, :, 2] .!= 0
     # imshow(F .* seg_mask)
     if spread_area(cell) != 0.0
         MFI = sum(F .* seg_mask) / spread_area(cell)
@@ -29,9 +29,9 @@ Calculates the sum of fluorescence intensity (ΣFI) of tension of a Cell
 # Returns
 - `ΣFI`: sum of fluorescence intensity of tension
 """
-function ΣFI(cell::Cell;channel=1)
-    F = cell.I[:,:,channel]
-    seg_mask = cell.seg[:,:,2] .!= 0
+function ΣFI(cell::Cell; channel = 1)
+    F = cell.I[:, :, channel]
+    seg_mask = cell.seg[:, :, 2] .!= 0
     # imshow(F .* seg_mask)
     ΣFI = sum(F .* seg_mask)
 end
@@ -46,8 +46,8 @@ Calculates the spread area of a Cell
 """
 function spread_area(cell::Cell)
     # F = cell.I[:,:,channel]
-    seg_mask = cell.seg[:,:,2] .!= 0
-    seg_mask = morph.binary_erosion(seg_mask,morph.disk(5))
+    seg_mask = cell.seg[:, :, 2] .!= 0
+    seg_mask = morph.binary_erosion(seg_mask, morph.disk(5))
     # imshow(seg_mask)
     SA = sum(seg_mask) * px_area
 end
@@ -64,8 +64,8 @@ Calculate MFI, ΣFI and SA for all cells in a given set of cell images
 """
 function summarize_cells(cells, QC)
     cells_QC = cells[Bool.(QC)]
-    ΣFIs = ΣFI.(cells_QC;channel=1)
-    MFIs = MFI.(cells_QC;channel=1)
+    ΣFIs = ΣFI.(cells_QC; channel = 1)
+    MFIs = MFI.(cells_QC; channel = 1)
     SAs = spread_area.(cells_QC)
     return ΣFIs, MFIs, SAs
 end
@@ -80,7 +80,7 @@ Calculates the area of a Cell based on DIC segmentation
 """
 function cell_area(cell::Cell)
     # F = cell.I[:,:,channel]
-    seg_mask = cell.seg[:,:,1] .!= 0
+    seg_mask = cell.seg[:, :, 1] .!= 0
     # imshow(seg_mask)
     cell_area = sum(seg_mask) * px_area
 end
